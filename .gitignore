@@ -1,0 +1,8 @@
+.DS_STORE
+
+*.swp
+*.swo
+
+data/
+.data/
+.ipynb_checkpoints/
