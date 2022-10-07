@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH --output gen_pace_weighted.out
-#SBATCH --job-name=gen_pace_weighted
+#SBATCH --output gen_erdos_reyni_mid.out
+#SBATCH --job-name=gen_erdos_reyni_mid
 #SBATCH --cpus-per-task=1 --mem-per-cpu=8G -t 6:00:00 --mail-type ALL
 
 module load SciPy-bundle
