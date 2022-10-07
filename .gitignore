@@ -3,6 +3,5 @@
 *.swp
 *.swo
 
-data/
-.data/
+out/
 .ipynb_checkpoints/
