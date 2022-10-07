@@ -2,9 +2,8 @@
 
 #SBATCH --output gen_pace_weighted.out
 #SBATCH --job-name=gen_pace_weighted
-#SBATCH --cpus-per-task=1 --mem-per-cpu=16G -t 6:00:00 --mail-type ALL
+#SBATCH --cpus-per-task=1 --mem-per-cpu=4G -t 6:00:00 --mail-type ALL
 
-module purge
 module load SciPy-bundle
 module load networkx
 
