@@ -18,7 +18,7 @@ def make_parser():
     parser.add_argument("--random_seed", type=int, required=True)
     parser.add_argument("--output_dir", type=existing_directory, required=True)
 
-    parser.add_argument("--max_vertex_weight", type=positive_integer, default=1)
+    parser.add_argument("--max_vertex_weight", type=int, default=0)
 
     return parser
 
@@ -29,15 +29,15 @@ if __name__ == "__main__":
 
     random_state = np.random.RandomState(args.random_seed)
 
+    max_weight = args.max_weight if args.max_weight > 0 else 2 * args.n_vertices
+
     for graph_idx in range(args.n_graphs):
         G = nx.fast_gnp_random_graph(args.n_vertices, args.p_edge, seed=random_state)
-        inject_node_weights(
-            G, max_weight=args.max_vertex_weight, random_state=random_state
-        )
+        inject_node_weights(G, max_weight=max_weight, random_state=random_state)
 
         output_path = (
             args.output_dir
-            / f"erdos-reyni-n{args.n_vertices}-p{args.p_edge}-{args.random_seed}_{graph_idx}.graph"
+            / f"erdos-reyni-n{args.n_vertices}-p{args.p_edge}--maxw{max_weight}-seed{args.random_seed}_{graph_idx}.graph"
         )
         print(output_path.resolve())
         nx_to_metis(G, output_path.resolve())
