@@ -30,9 +30,7 @@ if __name__ == "__main__":
     random_state = np.random.RandomState(args.random_seed)
 
     for graph_idx in range(args.n_graphs):
-        G = nx.fast_gnp_random_graph(
-            args.n_vertices, args.p_edge, seed=random_state
-        )
+        G = nx.fast_gnp_random_graph(args.n_vertices, args.p_edge, seed=random_state)
         inject_node_weights(
             G, max_weight=args.max_vertex_weight, random_state=random_state
         )
