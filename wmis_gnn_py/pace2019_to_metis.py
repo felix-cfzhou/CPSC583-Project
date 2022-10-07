@@ -55,13 +55,14 @@ if __name__ == "__main__":
         )
 
         for sample_idx in range(args.samples_per_graph):
-            out_filename = (
-                args.output_dir
-                / f"{path.stem}-maxw{max_weight}-seed{args.random_state}_{sample_idx}.graph"
-            )
-
             if max_weight > 1:
+                out_filename = (
+                    args.output_dir
+                    / f"{path.stem}-maxw{max_weight}-seed{args.random_state}_{sample_idx}.graph"
+                )
                 inject_node_weights(G, max_weight=max_weight, random_state=random_state)
+            else:
+                out_filename = args.output_dir / f"{path.stem}.graph"
 
             print(out_filename.resolve())
             nx_to_metis(G, out_filename.resolve())
