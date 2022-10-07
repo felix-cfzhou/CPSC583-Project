@@ -3,26 +3,38 @@ import pathlib
 
 
 def positive_integer(string):
-  try:
-    value = int(string)
-    if value <= 0:
-      raise Exception()
-    
-    return value
-  except:
-    raise argparse.ArgumentTypeError(f"{string} is not a positive integer!")
+    try:
+        value = int(string)
+        if value <= 0:
+            raise Exception()
+
+        return value
+    except:
+        raise argparse.ArgumentTypeError(f"{string} is not a positive integer!")
+
 
 def existing_directory(string):
-  path = pathlib.Path(string)
-  if path.exists() and path.is_dir():
-    return path
+    path = pathlib.Path(string)
+    if path.exists() and path.is_dir():
+        return path
 
-  raise argparse.ArgumentTypeError(f"{string} is not a directory!")
+    raise argparse.ArgumentTypeError(f"{string} is not a directory!")
+
 
 def existing_file(string):
-  path = pathlib.Path(string)
-  if path.exists() and path.is_file():
-    return path
+    path = pathlib.Path(string)
+    if path.exists() and path.is_file():
+        return path
 
-  raise argparse.ArgumentTypeError(f"{string} is not a file!")
+    raise argparse.ArgumentTypeError(f"{string} is not a file!")
 
+
+def probability(string):
+    try:
+        value = float(string)
+        if not 0.0 <= value <= 1.0:
+            raise Exception()
+
+        return value
+    except:
+        raise argparse.ArgumentTypeError(f"{string} is not a probability!")
