@@ -26,7 +26,7 @@ def wmis_ilp(G: nx.Graph):
         else:
             raise Exception("Did not found optimal solution!")
 
-    except gp.GruobiError as e:
+    except gp.GurobiError as e:
       print(f"Error code {e.errno}: {e}")
     except AttributeError:
       print("Encountered an attribute error")

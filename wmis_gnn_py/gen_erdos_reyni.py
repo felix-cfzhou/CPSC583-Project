@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
     for graph_idx in range(args.n_graphs):
         G = nx.fast_gnp_random_graph(args.n_vertices, args.p_edge, seed=random_state)
+        G = nx.convert_node_labels_to_integers(G, first_label=1)
         inject_node_weights(G, max_weight=max_weight, random_state=random_state)
 
         output_path = (

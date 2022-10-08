@@ -2,7 +2,7 @@
 
 #SBATCH --output gen_erdos_reyni_large.out
 #SBATCH --job-name=gen_erdos_reyni_large
-#SBATCH --cpus-per-task=1 --mem-per-cpu=16G -t 12:00:00 --mail-type ALL
+#SBATCH --cpus-per-task=1 --mem-per-cpu=32G -t 20:00:00 --mail-type ALL
 
 module load SciPy-bundle
 module load networkx
