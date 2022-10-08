@@ -28,4 +28,3 @@ if __name__ == "__main__":
     output_path = args.output_dir / args.metis_path.with_suffix(".ind").name
 
     nx_to_solution(G, output_path.resolve())
-

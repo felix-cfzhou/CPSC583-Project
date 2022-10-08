@@ -64,5 +64,5 @@ def nx_to_solution(G: nx.Graph, filename):
     solution = nx.get_node_attributes(G, "solution")
 
     with open(filename, "w") as f:
-        for v in range(1, G.order()+1):
+        for v in range(1, G.order() + 1):
             _write_line(f, str(solution[v]))
