@@ -38,7 +38,7 @@ def pace_to_nx(filename: str):
             G.add_edge(u, v)
             H.add_edge(u, v)
 
-        for v in range(1, n_vertices+1):
+        for v in range(1, n_vertices + 1):
             if v not in G or v not in H:
                 G.add_node(v)
                 H.add_node(v)

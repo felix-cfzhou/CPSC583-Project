@@ -79,7 +79,7 @@ def solution_to_nx(G: nx.Graph, filename):
 
     with open(filename, "r") as f:
         for line_num, line in enumerate(f):
-            v = line_num+1
+            v = line_num + 1
             solution[v] = int(line)
 
     assert len(solution) == G.order()
