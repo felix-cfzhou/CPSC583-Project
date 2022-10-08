@@ -11,7 +11,6 @@ def yield_metis_filenames(graph_dir):
 
 def metis_to_nx(filename: str):
     G = nx.Graph()
-    H = nx.MultiGraph()
 
     with open(filename, "r") as f:
         for line_num, line in enumerate(f):
@@ -27,21 +26,19 @@ def metis_to_nx(filename: str):
             if line[0] == "%":
                 continue
 
-            node_weight, neighbors = map(int, line.split(" "))
+            node_weight, *neighbors = map(int, line.split(" "))
 
             assert node_weight > 0
 
             G.add_node(line_num, weight=node_weight)
-            H.add_node(line_num, weight=node_weight)
 
             for v in neighbors:
                 assert 1 <= v <= n_vertices
                 G.add_edge(line_num, v)
-                H.add_edge(line_num, v)
 
-        assert H.size() == n_edges
+        assert G.size() == n_edges
 
-    return G, H
+    return G
 
 
 def _write_line(f, line):
@@ -61,3 +58,11 @@ def nx_to_metis(G: nx.Graph, filename):
                     adj.append(str(w))
 
             _write_line(f, " ".join(adj))
+
+
+def nx_to_solution(G: nx.Graph, filename):
+    solution = nx.get_node_attributes(G, "solution")
+
+    with open(filename, "w") as f:
+        for v in range(1, G.order()+1):
+            _write_line(f, str(solution[v]))
