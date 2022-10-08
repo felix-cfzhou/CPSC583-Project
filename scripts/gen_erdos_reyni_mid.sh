@@ -7,4 +7,4 @@
 module load SciPy-bundle
 module load networkx
 
-python3 /home/cz397/project/CPSC583-Project/wmis_gnn_py/gen_erdos_reyni.py --n_graphs=5000 --n_vertices=1000 --p_edge=0.05 --random_seed=50 --output_dir=/home/cz397/project/CPSC583-Project/data/erdos_reyni_mid
+python3 /home/cz397/project/CPSC583-Project/wmis_gnn_py/gen_erdos_reyni.py --n_graphs=5000 --n_vertices=1000 --p_edge=0.005 --random_seed=5 --output_dir=/home/cz397/project/CPSC583-Project/data/erdos_reyni_mid
