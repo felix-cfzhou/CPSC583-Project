@@ -66,3 +66,21 @@ def nx_to_solution(G: nx.Graph, filename):
     with open(filename, "w") as f:
         for v in range(1, G.order() + 1):
             _write_line(f, str(solution[v]))
+
+
+def yield_solution_filenames(solution_dir):
+    path = pathlib.Path(solution_dir)
+    for filename in sorted(path.glob("*.ind")):
+        yield filename
+
+
+def solution_to_nx(G: nx.Graph, filename):
+    solution = {}
+
+    with open(filename, "r") as f:
+        for line_num, line in enumerate(f):
+            v = line_num+1
+            solution[v] = int(line)
+
+    assert len(solution) == G.order()
+    nx.set_node_attributes(G, solution, "solution")
