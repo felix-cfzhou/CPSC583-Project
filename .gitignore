@@ -5,6 +5,18 @@ gurobi.log
 *.swp
 *.swo
 
+*.aux
+*.out
+*.log
+*.synctex.gz
+*.thm
+*.toc
+*.lof
+*.lot
+*.pdf
+*.bbl
+*.blg
+
 out/
 .ipynb_checkpoints/
 __pycache__/
