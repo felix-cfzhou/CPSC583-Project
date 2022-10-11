@@ -33,6 +33,99 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 
+% Felix's packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[shortlabels]{enumitem}
+\usepackage{mathtools}
+\usepackage{mathrsfs}
+\usepackage{dsfont}
+\usepackage{physics}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[nameinlink]{cleveref}
+
+% floor, ceiling, set
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\set}{\lbrace}{\rbrace}
+\DeclarePairedDelimiter{\iprod}{\langle}{\rangle}
+\DeclarePairedDelimiter{\card}{\lvert}{\rvert}
+\let\abs\relax
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\level}{\llbracket}{\rrbracket}
+
+\DeclareMathOperator{\Int}{int}
+\DeclareMathOperator{\bdy}{bdy}
+\DeclareMathOperator{\Lim}{Lim}
+\DeclareMathOperator{\mean}{mean}
+\DeclareMathOperator{\col}{col}
+\DeclareMathOperator{\proj}{proj}
+\DeclareMathOperator{\dual}{dual}
+\usepackage[nameinlink]{cleveref}
+\DeclareMathOperator{\opt}{opt}
+\DeclareMathOperator{\cone}{cone}
+\DeclareMathOperator{\conv}{conv}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\poly}{poly}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\depth}{depth}
+\DeclareMathOperator{\OPT}{OPT}
+\DeclareMathOperator{\Set}{set}
+\DeclareMathOperator{\pred}{pred}
+\DeclareMathOperator{\SAT}{SAT}
+\DeclareMathOperator{\indeg}{indeg}
+\DeclareMathOperator{\outdeg}{outdeg}
+\DeclareMathOperator{\tw}{tw}
+\DeclareMathOperator{\bw}{bw}
+\DeclareMathOperator{\pw}{pw}
+\DeclareMathOperator{\cutwidth}{cutwidth}
+\DeclareMathOperator{\Cut}{Cut}
+\DeclareMathOperator{\Vs}{Vs}
+\DeclareMathOperator{\vs}{vs}
+\DeclareMathOperator{\adj}{adj}
+\DeclareMathOperator{\Sp}{Sp}
+\DeclareMathOperator{\argmax}{argmax}
+\DeclareMathOperator{\argmin}{argmin}
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\MLE}{MLE}
+\DeclareMathOperator{\MAP}{MAP}
+\DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\LK}{LK}
+\DeclareMathOperator{\Be}{Be}
+\DeclareMathOperator{\Bin}{Bin}
+\DeclareMathOperator{\Geo}{Geo}
+\DeclareMathOperator{\Po}{Po}
+\DeclareMathOperator{\Exp}{Exp}
+\DeclareMathOperator{\Mult}{Mult}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Cauchy}{Cauchy}
+
+% commonly used sets
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\F}{\mathcal{F}}
+\renewcommand{\L}{\mathcal{L}}
+\renewcommand{\P}{\mathbb{P}}
+
+\newcommand{\sset}{\subseteq}
+\newcommand{\mcal}{\mathcal}
+\newcommand{\mscr}{\mathscr}
+\newcommand{\mfrak}{\mathfrak}
+\newcommand{\up}{\uparrow}
+\newcommand{\down}{\downarrow}
+\newcommand{\zeros}{\mathds{0}}
+\newcommand{\ones}{\mathds{1}}
+\newcommand{\tends}[1]{\xrightarrow{#1}}
+
+\newcommand{\Partition}{{\sc Partition}}
+
 \renewcommand{\bibsection}{}
 
 
@@ -98,36 +191,160 @@
 \end{abstract}
 
 
-\section{Problem Definition}
+\section{Introduction \& Problem Definition}
+Let $G=(V, E)$ be a (simple, undirected) graph with vertex set $V$
+and edge set $E$.
+Suppose we also have vertex sets $w: V\to \R_{++}$.
+Recall that a subset of vertices $I\sset V$ is \emph{independent}
+if for every $u\neq v\in I$, $uv\notin E$.
+That is, the vertices in $I$ are pairwise non-adjacent.
+The weighted maximum independent set problem (WMIS)
+asks us to find an independent set $I$ which maximizes
+\[
+  w(I) := \sum_{v\in I} w(v).
+\]
+Note that $I$ is a WMIS in $G$
+if and only if $V\setminus I$ is a weighted minimum vertex cover (WMVC) in $G$.
+The unweighted decision version of the minimum vertex cover problem (MVC)
+was one of Karp's original 21 NP-complete problems.
+It follows that both WMVC and WMIS are both NP-hard.
+In general graphs,
+it is known that the independent set problem (MIS) cannot be approximated within a factor of $n^{1-\epsilon}$ for any $\epsilon > 0$ where $n$ is the number of vertices \citet{zuckerman2006linear}.
+In fact, even in 3-regular 3-edge-colorable graphs,
+there can be no polynomial time approximation scheme (PTAS) \citet{berman1999appr}.
+
+It is helpful to think of WMIS as a 0-1 integer program.
+\begin{align*}
+  &\max \sum_{v\in V} w(v) x(v) \\
+  x(u) + x(v) &\leq 1 &&\forall uv\in E \\
+  x &\in \set{0, 1}
+\end{align*}
+Although we cannot hope to solve 0-1 integer programs polynomial time,
+we can relax the integral constraints to form a linear program.
+\begin{align*}
+  &\max \sum_{v\in V} w(v) x(v) \\
+  x(u) + x(v) &\leq 1 &&\forall uv\in E \\
+  x &\geq 0 \\
+  x &\leq 1
+\end{align*}
+Solving this linear program yields a solution $\bar x\in [0, 1]^n$.
+It is known that if $\bar x(v) = 1$,
+then there is a WMIS which includes $v$
+and if $\bar x(v) = 0$,
+then there is a WMIS which does not include $v$ \citet{lpreduction}.
+Thus we can shrink an instance of WMIS by first solving a linear program
+and enforcing that integral vertices are (not) part of the solution.
+This is an example of a reduction rule which reduces the sizes of instances
+such that any optimal solution for the reduced instance can be expanded to an optimal solution
+for the original solution.
+
+Practical solvers for WMIS extensively use reduction rules
+in hopes that we can significantly reduce instances
+before applying brute force or a heuristic search \cite{kamis}.
+\citet{langedal_et_al} proposed a hybrid approach
+which uses reductions, a graph neural network (GNN), and a solver to compute an initial feasible solution.
+This is solution is then improved using iterative search.
+
 \section{Dataset}
+We consider both real-world graphs and synthetic graphs.
+Since these graphs do not come with weights,
+we augment each instance with uniformly random integer weights within the interval $[1, N]$.
+It is known that with probability at least $1-\frac nN$,
+there is a unique solution to WMIS \citet{isolation}.
+Thus we chose $N = 2n$ in hopes that this disambiguates supervised learning.
+
+\subsection{PACE 2019 Graphs}
+The PACE 2019 competition asked participants to solve MVC in 200 real-world graphs \citet{pace2019}.
+Half of the dataset was provided to contestants and the remaining half was used to evaluate submissions.
+Solvers were given 30 minutes to solve each instance exactly.
+
+For each of the 200 graphs, we sampled 100 instances of uniform random weights.
+Out of the 10000 instances,  
+the state-of-the-art branch and reduce (B\&R) solver by \citet{kamis} solved 18197 cases within 6 hours.
+
+See \Cref{fig:pace} for some elementary statistics about the pace dataset.
+It is interesting to note that this dataset is relatively sparse,
+with mostly single digit average degree.
+Moreover, most graphs have very few connected components.
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/pace_avg_deg}
+         \caption{Average degree of pace graphs.}
+         \label{fig:pace_avg_deg}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/pace_n_nodes}
+         \caption{Number of nodes in pace graphs.}
+         \label{fig:pace_n_nodes}
+     \end{subfigure}
+     
+     \bigskip
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/pace_n_edges}
+         \caption{number of edges in pace graphs.}
+         \label{fig:pace_n_edges}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/pace_n_components}
+         \caption{Number of components in pace graphs.}
+         \label{fig:pace_n_components}
+     \end{subfigure}
+     \caption{Basic graph statistics as histograms for pace graphs.}
+     \label{fig:pace}
+\end{figure}
+
+\subsection{Erd\H os-R\'eyni Graphs}
+We can generate an instance of an Erd\H os-R\'eyni graph $G(n, p)$ on $n$ vertices
+by randomly connecting every pair of vertices independently
+with some fixed probability $p$.
+Since these are very well-studied graphs,
+we omit the graph statistics.
+
+We generated 1000 instaces of $G(200, 0.1)$,
+for which the B\&R solver by \citet{kamis} solved all cases within 6 hours.
+Next, we generate 5000 instances of $G(1000, 0.005)$,
+for which the B\&R solver solved 400 cases within 6 hours.
+Finally, we generated 20000 instances of $G(50000, 0.00005)$.
+for which the B\&R solver solved all cases within 6 hours.
+
+\subsection{Watts-Strogatz Graphs}
+If time permits, we would also like to experiment with Watts-Strogatz graphs.
+Also called ``small-world graphs'',
+these graphs are generated by first taking a $k$-regular graph
+and randomly reassigning the endpoints of edges to other vertices.
+
 \section{Description of Related Works}
 Efficient Minimum Weight Vertex Cover Heuristics Using Graph Neural Networks by \citet{langedal_et_al}.
 
-Graph convolutional network by \citet{gcn}.
+SuiteSparse graphs \citet{suitesparse}.
 
+KaMIS weighted branch and reduce algorithm by \citet{kamis}.
+
+WeGotYouCovered solver by \citet{wegotyoucovered}.
+
+Reducing peeling with GCNs by \citet{comboptgcn}.
+
+\section{Proposed Approaches}
 Identity-Aware GNN by \citet{idgnn}.
 
-SuiteSparse graphs \citet{suitesparse}.
+Graph convolutional network by \citet{gcn}.
 
 Pytorch framework by \citet{pytorch}.
 
 Pytorch geometric by \citet{pyg}.
 
-KaMIS weighted branch and reduce algorithm by \citet{kamis}.
-
-Pace 2019 competition by \citet{pace2019}.
-
-WeGotYouCovered solver by \citet{wegotyoucovered}.
-
 Gurobi solver by \citet{gurobi}.
-
-Isolation lemma by \citet{isolation}.
 
 LP based reduction by \citet{lpreduction}.
 
-Reducing peeling with GCNs by \citet{comboptgcn}.
-
-\section{Proposed Approaches}
 \section{Evaluation Metrics}
 \section{Timeline}
 \section{References}
