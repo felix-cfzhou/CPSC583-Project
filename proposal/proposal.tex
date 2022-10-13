@@ -230,43 +230,16 @@ For each of the 200 graphs, we sampled 100 instances of uniform random weights.
 Out of the 10000 instances,  
 the state-of-the-art branch and reduce (B\&R) solver by \citet{kamis} solved 18197 cases within 6 hours.
 
-See \Cref{fig:pace} for some elementary statistics about the pace dataset.
+See \Cref{fig:pace_unweighted} for some elementary statistics about the pace dataset.
 It is interesting to note that this dataset is relatively sparse,
 with mostly single digit average degree.
 Moreover, most graphs have very few connected components.
 
 \begin{figure}
      \centering
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/pace_avg_deg}
-         \caption{Average degree of pace graphs.}
-         \label{fig:pace_avg_deg}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/pace_n_nodes}
-         \caption{Number of nodes in pace graphs.}
-         \label{fig:pace_n_nodes}
-     \end{subfigure}
-     
-     \bigskip
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/pace_n_edges}
-         \caption{number of edges in pace graphs.}
-         \label{fig:pace_n_edges}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/pace_n_components}
-         \caption{Number of components in pace graphs.}
-         \label{fig:pace_n_components}
-     \end{subfigure}
+     \includegraphics[width=\textwidth]{figures/pace_unweighted}
      \caption{Basic graph statistics as histograms for pace graphs.}
-     \label{fig:pace}
+     \label{fig:pace_unweighted}
 \end{figure}
 
 \subsection{Erd\H os-R\'eyni Graphs}
@@ -282,6 +255,13 @@ Next, we generate 5000 instances of $G(1000, 0.005)$,
 for which the B\&R solver solved 400 cases within 6 hours.
 Finally, we generated 20000 instances of $G(50000, 0.00005)$.
 for which the B\&R solver solved all cases within 6 hours.
+
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/erdos_reyni_small}
+     \caption{Basic graph statistics as histograms for $G(200, 0.1)$ graphs.}
+     \label{fig:erdos_reyni_small}
+\end{figure}
 
 \subsection{Watts-Strogatz Graphs}
 If time permits, we would also like to experiment with Watts-Strogatz graphs $G(n, k, p)$.
