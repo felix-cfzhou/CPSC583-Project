@@ -44,6 +44,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage[nameinlink]{cleveref}
+\usepackage{float}
 
 % floor, ceiling, set
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
@@ -194,7 +195,7 @@
 \section{Introduction \& Problem Definition}
 Let $G=(V, E)$ be a (simple, undirected) graph with vertex set $V$
 and edge set $E$.
-Suppose we also have vertex sets $w: V\to \R_{++}$.
+Suppose we also have vertex weights $w: V\to \R_{++}$.
 Recall that a subset of vertices $I\sset V$ is \emph{independent}
 if for every $u\neq v\in I$, $uv\notin E$.
 That is, the vertices in $I$ are pairwise non-adjacent.
@@ -221,33 +222,42 @@ Thus we chose $N = 2n$ in hopes that this disambiguates supervised learning.
 \subsection{PACE 2019 Graphs}
 The PACE 2019 competition asked participants to solve MVC in 200 real-world graphs \citet{pace2019}.
 Half of the dataset (odd indices) was provided to contestants
-and the remaining half (even indices) was used to evaluate submissions.
+and the remaining half (even indices) was retained to evaluate submissions.
 Solvers were given 30 minutes to solve each instance exactly.
-This winning solution by \citet{wegotyoucovered} combined reduction rules,
+The winning solution by \citet{wegotyoucovered} combined reduction rules,
 local search, and a branch and bound scheme.
 
-For each of the 200 graphs, we sampled 100 instances of uniform random weights.
-Out of the 10000 instances,  
+For each of the 200 PACE graphs,
+we sampled 100 instances of uniform random vertex weights.
+Out of the 20000 total instances,  
 the state-of-the-art branch and reduce (B\&R) solver by \citet{kamis} solved 18197 cases within 6 hours.
 
 See \Cref{fig:pace_unweighted} for some elementary statistics about the pace dataset.
 It is interesting to note that this dataset is relatively sparse,
 with mostly single digit average degree.
-Moreover, most graphs have very few connected components.
+Moreover, most graphs have few connected components.
 
-\begin{figure}
-     \centering
-     \includegraphics[width=\textwidth]{figures/pace_unweighted}
-     \caption{Basic graph statistics as histograms for pace graphs.}
-     \label{fig:pace_unweighted}
-\end{figure}
+One trait of interest is how there is a bi-modal distribution for the \emph{approximate average clustering coefficient}.
+The \emph{local clustering coefficient} of $v\in V$
+is the fraction of triangles that exist over all possible triangles in $N(v)$.
+The approximate average clustering coefficient
+estimates the average of the local clustering coefficients across all nodes in a graph.
+This suggests there are roughly two groups of PACE graphs in terms of the strength of community.
+
+Informally speaking, \emph{treewidth} measures how far a graph is from being a tree \citet{robertson1986graph}.
+Treewidth is a popular parameter in the parameterized complexity analysis of graph algorithms.
+Many problems that are NP-hard for general graphs can be solved in polynomial time
+with dynamic programming
+when the treewidth is bounded by a constant.
+Although treewidth is NP-hard to compute in general \citet{treewidth_hardness},
+we compute an upperbound with heuristics based on node degrees \citet{bodlaender2010treewidth}.
+We see that most PACE graphs have relatively small treewidth,
+which may explain why most of them can be solved by B\&R.
 
 \subsection{Erd\H os-R\'eyni Graphs}
 We can generate an instance of an Erd\H os-R\'eyni graph $G(n, p)$ on $n$ vertices
 by randomly connecting every pair of vertices independently
 with some fixed probability $p$.
-Since these are very well-studied graphs,
-we omit the graph statistics.
 
 We generated 1000 instaces of $G(200, 0.1)$,
 for which the B\&R solver by \citet{kamis} solved all cases within 6 hours.
@@ -255,13 +265,17 @@ Next, we generate 5000 instances of $G(1000, 0.005)$,
 for which the B\&R solver solved 400 cases within 6 hours.
 Finally, we generated 20000 instances of $G(50000, 0.00005)$.
 for which the B\&R solver solved all cases within 6 hours.
+It may be interesting to plot the fraction of cases solvable by B\&R
+against the parameters $n, p$.
 
-\begin{figure}
-     \centering
-     \includegraphics[width=\textwidth]{figures/erdos_reyni_small}
-     \caption{Basic graph statistics as histograms for $G(200, 0.1)$ graphs.}
-     \label{fig:erdos_reyni_small}
-\end{figure}
+See \Cref{fig:erdos_reyni_small} for some preliminary statistics of $G(200, 0.1)$,
+computed from a sample of 200 from the 1000 generated instances.
+As expected,
+we see that the number of edges,
+average degree,
+treewidth upperbound,
+and approximate average clustering coefficient
+are all roughly normally distributed.
 
 \subsection{Watts-Strogatz Graphs}
 If time permits, we would also like to experiment with Watts-Strogatz graphs $G(n, k, p)$.
@@ -277,20 +291,21 @@ It is helpful to think of WMIS as a 0-1 integer program.
   x(u) + x(v) &\leq 1 &&\forall uv\in E \\
   x &\in \set{0, 1}
 \end{align*}
-Although we cannot hope to solve 0-1 integer programs polynomial time,
+Although we cannot hope to solve 0-1 integer programs in polynomial time
+(unless P=NP),
 we can relax the integral constraints ($x\in \set{0, 1}^n$)
 to form a linear program ($x\in [0, 1]^n$).
 Solving this linear program yields a solution $\bar x\in [0, 1]^n$.
-It is known that if $\bar x(v) = 1$,
-then there is a WMIS which includes $v$
+It is known that there is an optimal solution to WMIS
+such that if $\bar x(v) = 1$,
+then the solution includes $v$
 and if $\bar x(v) = 0$,
-then there is a WMIS which does not include $v$ \citet{lpreduction}.
+then the solution does not include $v$ \citet{lpreduction}.
 Thus we can shrink an instance of WMIS by first solving a linear program
 and enforcing that integral vertices are (not) part of the solution.
 This is an example of a reduction rule which reduces the sizes of instances
 such that any optimal solution for the reduced instance can be expanded to an optimal solution
 for the original solution.
-
 Practical solvers for WMIS extensively use reduction rules
 in hopes that we can significantly reduce instances
 before applying brute force or a heuristic search \cite{kamis}.
@@ -308,7 +323,7 @@ iterative search,
 and GNNs.
 The authors first compute a greedy solution using reduction rules when possible.
 Then, a simple 3-layer GNN is applied to select a vertex likely to be in or out of the solution,
-potentially opening up for further reductions.
+potentially opening up further reductions.
 Finally, a local search strategy is used to enhance the solution.
 They also provided a C++ implementation
 and conducted experiments on some SuiteSparse graphs \citet{suitesparse}.
@@ -350,10 +365,10 @@ we can optionally attempt further reductions before computing a final solution.
 
 \subsection{Computing a Final Solution}
 If the current solution is not integral,
-there is a simple greedy algorithm to ``round'' the solution to an independent.
+there is a simple greedy algorithm to ``round'' the solution to an independent set.
 Namely, we sort the vertices in non-increasing fashion based on the value in the current solution.
 Then, we greedily add the highest unprocessed vertex to our independent set
-while marking all of this neighbors as not belonging to the set.
+while marking all of its neighbors as not belonging to the set.
 
 \section{Evaluation Metrics}
 We would like to evaluate the performance of our framework on the PACE 2019 dataset \citet{pace2019},
@@ -362,8 +377,8 @@ and Watts-Strogatz graphs (if time permits) in two ways.
 we would first like to look at the approximation ratio of our algorithm compared to the exact solutions
 computed using B\&R \citet{kamis}.
 Then, we would like to compare the approximation ratio of our algorithms compared to a heuristic local search
-restricted to 30 minutes B\&R.
-The second metric is necessary since the exact solver was unable to find the optimal result for about 10\% of graphs.
+restricted to 30 minutes.
+The second metric is necessary since the exact solver was unable to find the optimal result for about 10\% of PACE graphs.
 
 On the PACE 2019 dataset,
 we will imitate the conditions of the contest and train our models on the odd-indexed graphs.
@@ -392,6 +407,21 @@ We plan on spending one week on each of the following tasks:
 \section{References}
 \bibliographystyle{plainnat}
 \bibliography{proposal.bib}
+
+\section{Appendix}
+\begin{figure}[H]
+     \centering
+     \includegraphics[width=\textwidth]{figures/pace_unweighted}
+     \caption{Basic graph statistics as histograms for pace graphs.}
+     \label{fig:pace_unweighted}
+\end{figure}
+
+\begin{figure}[H]
+     \centering
+     \includegraphics[width=\textwidth]{figures/erdos_reyni_small}
+     \caption{Basic graph statistics as histograms for $G(200, 0.1)$ graphs.}
+     \label{fig:erdos_reyni_small}
+\end{figure}
 
 
 \end{document}
