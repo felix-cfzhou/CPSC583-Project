@@ -20,3 +20,10 @@ gurobi.log
 out/
 .ipynb_checkpoints/
 __pycache__/
+
+label/
+erdos_reyni_large/
+erdos_reyni_small/
+pace_weighted/
+erdos_reyni_mid/
+pace_unweighted/
