@@ -10,18 +10,23 @@ from metis import metis_to_nx, solution_to_nx, yield_solution_filenames
 def nx_to_tensor(G: nx.Graph):
     id_attr = {v: v for v in G.nodes}
     nx.set_node_attributes(G, id_attr, "id")
+    
+    deg_attr = dict(G.degree)
+    nx.set_node_attributes(G, deg_attr, "deg")
+    
+    hood_weight = {v: sum(G.nodes[w]["weight"] for w in G.neighbors(v)) for v in G.nodes}
+    nx.set_node_attributes(G, hood_weight, "hood_weight")
+    
+    weight = nx.get_node_attributes(G, "weight")
+    nx.set_node_attributes(G, weight, "weight_copy")
 
-    data = pyg.utils.convert.from_networkx(G)
-    data.weight = data.weight.float().reshape((-1, 1))
-    data.solution = data.solution.float().reshape((-1, 1))
+    data = pyg.utils.convert.from_networkx(G, group_node_attrs=["weight_copy", "hood_weight", "deg"])
+    data.x = data.x / (2 * G.order())
     
     return data
 
 
 def tensor_to_nx(data):
-    data.solution = data.solution.long().reshape((1,))
-    data.weight = data.weight.long().reshape((1,))
-    
     G = pyg.utils.convert.to_networkx(data, node_attrs=["weight", "id", "solution"], to_undirected=True)
     id_map = nx.get_node_attributes(G, "id")
     nx.relabel_nodes(G, id_map, copy=False)
