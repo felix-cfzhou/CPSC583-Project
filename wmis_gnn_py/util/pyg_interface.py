@@ -6,7 +6,7 @@ import torch
 from torch_geometric.utils import add_remaining_self_loops
 from torch_scatter import scatter_add
 
-from metis import metis_to_nx, solution_to_nx, yield_solution_filenames
+from util.metis import metis_to_nx, solution_to_nx, yield_solution_filenames
 
 
 def _norm(edge_index, num_nodes, edge_weight=None, improved=False, dtype=None):
