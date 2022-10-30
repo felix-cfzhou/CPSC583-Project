@@ -29,8 +29,6 @@ def make_parser():
 
 
 def train(model, training_set, optimizer, loss_fn):
-    loss = 0
-
     model.train()
     optimizer.zero_grad()
     y_pred = model(data.x, data.edge_index)
@@ -77,8 +75,12 @@ if __name__ == "__main__":
 
     cutoff = int(len(dataset) * args.eval_size)
 
-    loader_train = pyg.loader.DataLoader(dataset[cutoff:], batch_size=64, shuffle=True)
-    loader_eval = pyg.loader.DataLoader(dataset[:cutoff], batch_size=64, shuffle=True)
+    loader_train = pyg.loader.DataLoader(
+        dataset[cutoff:], batch_size=args.batch_size, shuffle=True
+    )
+    loader_eval = pyg.loader.DataLoader(
+        dataset[:cutoff], batch_size=args.batch_size, shuffle=True
+    )
 
     model = WMVC(5, args.hidden_layers, 2).cuda()
 
