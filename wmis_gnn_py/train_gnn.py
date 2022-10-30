@@ -145,7 +145,7 @@ if __name__ == "__main__":
         eval_acc_1.append(eval_acc_1_curr)
 
         if epoch % 5 == 0:
-            if eval_acc_1 > max(eval_acc_1[:-1]):
+            if eval_acc_1_curr > max(eval_acc_1[:-1]):
                 output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
                 torch.save(model, output_path.resolve())
 
