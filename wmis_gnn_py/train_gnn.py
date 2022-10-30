@@ -24,6 +24,7 @@ def make_parser():
     parser.add_argument("--hidden_layers", type=positive_integer, required=True)
     parser.add_argument("--learning_rate", type=float, required=True)
     parser.add_argument("--momentum", type=probability, required=True)
+    parser.add_argument("--max_dataset_len", type=positive_integer, required=True)
 
     return parser
 
@@ -68,21 +69,20 @@ if __name__ == "__main__":
 
     dataset = WMISDataset(
         args.data_dir.resolve(),
-        transform=pyg.transforms.AddLaplacianEigenvectorPE(
-            k=2, attr_name=None, is_undirected=True
-        ),
+        transform=pyg.transforms.AddRandomWalkPE(walk_length=4, attr_name=None),
     ).shuffle()
 
-    cutoff = int(len(dataset) * args.eval_size)
+    dataset_len = min(len(dataset), args.max_dataset_len)
+    cutoff = int(dataset_len * args.eval_size)
 
     loader_train = pyg.loader.DataLoader(
-        dataset[cutoff:], batch_size=args.batch_size, shuffle=True
+        dataset[cutoff:dataset_len], batch_size=args.batch_size, shuffle=True
     )
     loader_eval = pyg.loader.DataLoader(
         dataset[:cutoff], batch_size=args.batch_size, shuffle=True
     )
 
-    model = WMVC(5, args.hidden_layers, 2).cuda()
+    model = WMVC(7, args.hidden_layers, 2).cuda()
 
     optimizer = torch.optim.SGD(
         model.parameters(),
@@ -137,6 +137,11 @@ if __name__ == "__main__":
             eval_acc_1_curr += acc_1 / len(loader_eval)
 
         # scheduler.step(eval_acc_10_curr)
+        if not eval_acc_1 or (eval_acc_1_curr > max(eval_acc_1)):
+            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
+            torch.save(model, output_path.resolve())
+
+            print(f"saving model from epoch {epoch} with eval acc_1: {eval_acc_1_curr}")
 
         train_loss.append(train_loss_curr)
         train_acc.append(train_acc_curr)
@@ -147,9 +152,6 @@ if __name__ == "__main__":
         eval_acc_1.append(eval_acc_1_curr)
 
         if epoch % 5 == 0:
-            if eval_acc_1_curr > max(eval_acc_1[:-1]):
-                output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
-                torch.save(model, output_path.resolve())
 
             print(f"After epoch {epoch}:")
             print(
