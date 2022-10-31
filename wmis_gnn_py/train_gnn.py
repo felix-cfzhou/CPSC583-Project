@@ -25,6 +25,7 @@ def make_parser():
     parser.add_argument("--learning_rate", type=float, required=True)
     parser.add_argument("--momentum", type=probability, required=True)
     parser.add_argument("--max_dataset_len", type=positive_integer, required=True)
+    parser.add_argument("--max_node_num", type=positive_integer, required=True)
 
     return parser
 
@@ -69,6 +70,7 @@ if __name__ == "__main__":
 
     dataset = WMISDataset(
         args.data_dir.resolve(),
+        node_limit=args.max_node_num,
         transform=pyg.transforms.AddRandomWalkPE(walk_length=4, attr_name=None),
     ).shuffle()
 
@@ -80,6 +82,10 @@ if __name__ == "__main__":
     )
     loader_eval = pyg.loader.DataLoader(
         dataset[:cutoff], batch_size=args.batch_size, shuffle=True
+    )
+
+    print(
+        f"{dataset_len-cutoff} training graphs, {cutoff} eval graphs, at most {args.max_node_num} nodes each."
     )
 
     model = WMVC(7, args.hidden_layers, 2).cuda()

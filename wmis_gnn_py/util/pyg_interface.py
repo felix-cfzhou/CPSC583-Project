@@ -80,7 +80,9 @@ def tensor_to_nx(data):
 
 
 class WMISDataset(pyg.data.Dataset):
-    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(
+        self, root, node_limit=-1, transform=None, pre_transform=None, pre_filter=None
+    ):
         super().__init__(root, transform, pre_transform, pre_filter)
 
         self.root_path = pathlib.Path(root)
@@ -88,6 +90,8 @@ class WMISDataset(pyg.data.Dataset):
         self.label_paths = []
         for label_path in yield_solution_filenames(self.root_path / "label/"):
             if label_path.suffix != ".ind":
+                continue
+            elif node_limit >= 0 and label_path.stat().st_size // 2 > node_limit:
                 continue
 
             graph_path = self.root_path / label_path.with_suffix(".graph").name
