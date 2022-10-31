@@ -129,7 +129,6 @@ if __name__ == "__main__":
             loss = train(model, data.cuda(), optimizer, loss_fn).detach()
             train_loss_curr += loss / len(loader_train)
 
-        for data in tqdm(loader_train, position=1, leave=False, desc="training eval"):
             acc, acc_10, acc_1 = test(model, data.cuda())
             train_acc_curr += acc / len(loader_train)
             train_acc_10_curr += acc_10 / len(loader_train)
