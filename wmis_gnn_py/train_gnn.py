@@ -147,6 +147,23 @@ if __name__ == "__main__":
             torch.save(model, output_path.resolve())
 
             print(f"saving model from epoch {epoch} with eval acc_1: {eval_acc_1_curr}")
+        elif not eval_acc_10 or (eval_acc_10_curr > max(eval_acc_10)):
+            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
+            torch.save(model, output_path.resolve())
+
+            print(
+                f"saving model from epoch {epoch} with eval acc_10: {eval_acc_10_curr}"
+            )
+        elif not eval_acc or (eval_acc_curr > max(eval_acc)):
+            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
+            torch.save(model, output_path.resolve())
+
+            print(f"saving model from epoch {epoch} with eval acc: {eval_acc_curr}")
+        elif epoch % 25 == 0:
+            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
+            torch.save(model, output_path.resolve())
+
+            print(f"saving model from epoch {epoch} with eval acc: {eval_acc_curr}")
 
         train_loss.append(train_loss_curr)
         train_acc.append(train_acc_curr)
@@ -156,18 +173,16 @@ if __name__ == "__main__":
         eval_acc_10.append(eval_acc_10_curr)
         eval_acc_1.append(eval_acc_1_curr)
 
-        if epoch % 5 == 0:
-
-            print(f"After epoch {epoch}:")
-            print(
-                f"train acc: {train_acc_curr}, train acc_10: {train_acc_10_curr}, train acc_1: {train_acc_1_curr},"
-            )
-            print(
-                f"eval acc: {eval_acc_curr}, eval acc_10: {eval_acc_10_curr}, eval acc_1: {eval_acc_1_curr}"
-            )
-            print(
-                "----------------------------------------------------------------------------------------"
-            )
+        print(f"After epoch {epoch}:")
+        print(
+            f"train acc: {train_acc_curr}, train acc_10: {train_acc_10_curr}, train acc_1: {train_acc_1_curr},"
+        )
+        print(
+            f"eval acc: {eval_acc_curr}, eval acc_10: {eval_acc_10_curr}, eval acc_1: {eval_acc_1_curr}"
+        )
+        print(
+            "----------------------------------------------------------------------------------------"
+        )
 
     output_path = args.output_dir / args.output_name
     torch.save(model, output_path.resolve())
