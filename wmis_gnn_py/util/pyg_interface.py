@@ -63,6 +63,9 @@ def nx_to_tensor(G: nx.Graph):
     )
     data.x = data.x / (2 * G.order())
 
+    add_random_walk_pe = pyg.transforms.AddRandomWalkPE(walk_length=4, attr_name=None)
+    add_random_walk_pe(data)
+
     # graph_identity = compute_identity(data.edge_index, G.order(), 8)
     # data.x = torch.cat([data.x, data.eigenvector_centrality.reshape((-1, 1)), graph_identity], dim=1)
 
@@ -74,7 +77,7 @@ def tensor_to_nx(data):
         data, node_attrs=["weight", "id", "solution"], to_undirected=True
     )
     id_map = nx.get_node_attributes(G, "id")
-    nx.relabel_nodes(G, id_map, copy=False)
+    G = nx.relabel_nodes(G, id_map, copy=True)
 
     return G
 

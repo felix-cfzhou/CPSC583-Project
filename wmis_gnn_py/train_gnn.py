@@ -5,6 +5,7 @@ import pathlib
 import torch
 import torch_geometric as pyg
 from tqdm import tqdm
+import pandas as pd
 import numpy as np
 
 from arch.wmvc import WMVC
@@ -38,7 +39,7 @@ def train(model, training_set, optimizer, loss_fn):
     loss.backward()
     optimizer.step()
 
-    return loss.cpu()
+    return loss.detach().cpu().numpy()
 
 
 @torch.no_grad()
@@ -47,7 +48,7 @@ def test(model, data):
     y_pred = torch.exp(model(data.x, data.edge_index))
     pred = y_pred.argmax(dim=1, keepdim=False)
     assert pred.shape == data.solution.shape
-    acc = pred.eq(data.solution).float().mean()
+    acc = pred.eq(data.solution).float().mean().cpu()
 
     batch_ids = torch.unique(data.batch)
     acc_10, acc_1 = [], []
@@ -61,7 +62,7 @@ def test(model, data):
         acc_10.append(solution_batch[indices[:10, 1]].eq(1).float().mean().cpu())
         acc_1.append(solution_batch[indices[0, 1]].eq(1).float().cpu())
 
-    return acc.cpu(), np.mean(acc_10), np.mean(acc_1)
+    return acc.numpy(), np.mean(acc_10), np.mean(acc_1)
 
 
 if __name__ == "__main__":
@@ -71,7 +72,6 @@ if __name__ == "__main__":
     dataset = WMISDataset(
         args.data_dir.resolve(),
         node_limit=args.max_node_num,
-        transform=pyg.transforms.AddRandomWalkPE(walk_length=4, attr_name=None),
     ).shuffle()
 
     dataset_len = min(len(dataset), args.max_dataset_len)
@@ -121,12 +121,12 @@ if __name__ == "__main__":
         [],
     )
 
-    # best_eval_acc = float("-inf")
+    output_path = args.output_dir / args.output_name
     for epoch in tqdm(epochs, position=0, leave=True, desc="epoch"):
         train_loss_curr = 0.0
         train_acc_curr, train_acc_10_curr, train_acc_1_curr = 0.0, 0.0, 0.0
         for data in tqdm(loader_train, position=1, leave=False, desc="training batch"):
-            loss = train(model, data.cuda(), optimizer, loss_fn).detach()
+            loss = train(model, data.cuda(), optimizer, loss_fn)
             train_loss_curr += loss / len(loader_train)
 
             acc, acc_10, acc_1 = test(model, data.cuda())
@@ -143,25 +143,33 @@ if __name__ == "__main__":
 
         # scheduler.step(eval_acc_10_curr)
         if not eval_acc_1 or (eval_acc_1_curr > max(eval_acc_1)):
-            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
-            torch.save(model, output_path.resolve())
+            torch.save(
+                model.state_dict(),
+                output_path.with_stem(f"{output_path.stem}_epoch{epoch:05}").resolve(),
+            )
 
             print(f"saving model from epoch {epoch} with eval acc_1: {eval_acc_1_curr}")
         elif not eval_acc_10 or (eval_acc_10_curr > max(eval_acc_10)):
-            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
-            torch.save(model, output_path.resolve())
+            torch.save(
+                model.state_dict(),
+                output_path.with_stem(f"{output_path.stem}_epoch{epoch:05}").resolve(),
+            )
 
             print(
                 f"saving model from epoch {epoch} with eval acc_10: {eval_acc_10_curr}"
             )
         elif not eval_acc or (eval_acc_curr > max(eval_acc)):
-            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
-            torch.save(model, output_path.resolve())
+            torch.save(
+                model.state_dict(),
+                output_path.with_stem(f"{output_path.stem}_epoch{epoch:05}").resolve(),
+            )
 
             print(f"saving model from epoch {epoch} with eval acc: {eval_acc_curr}")
         elif epoch % 25 == 0:
-            output_path = args.output_dir / f"{args.output_name}.epoch{epoch:05}"
-            torch.save(model, output_path.resolve())
+            torch.save(
+                model.state_dict(),
+                output_path.with_stem(f"{output_path.stem}_epoch{epoch:05}").resolve(),
+            )
 
             print(f"saving model from epoch {epoch} with eval acc: {eval_acc_curr}")
 
@@ -172,6 +180,19 @@ if __name__ == "__main__":
         eval_acc.append(eval_acc_curr)
         eval_acc_10.append(eval_acc_10_curr)
         eval_acc_1.append(eval_acc_1_curr)
+
+        df = pd.DataFrame(
+            {
+                "train_loss": train_loss,
+                "train_acc": train_acc,
+                "train_acc_10": train_acc_10,
+                "train_acc_1": train_acc_1,
+                "eval_acc": eval_acc,
+                "eval_acc_10": eval_acc_10,
+                "eval_acc_1": eval_acc_1,
+            }
+        )
+        df.to_csv(output_path.with_suffix(".csv").resolve(), index=False)
 
         print(f"After epoch {epoch}:")
         print(
@@ -184,5 +205,4 @@ if __name__ == "__main__":
             "----------------------------------------------------------------------------------------"
         )
 
-    output_path = args.output_dir / args.output_name
-    torch.save(model, output_path.resolve())
+    torch.save(model.state_dict(), output_path.resolve())
