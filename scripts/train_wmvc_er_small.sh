@@ -2,7 +2,7 @@
 
 #SBATCH --output train_wmvc2_er_small.out
 #SBATCH --job-name=train_wmvc2_er_small
-#SBATCH --partition=gpu --gpus=1 --cpus-per-task=1 --mem-per-cpu=4G -t 2:00:00 --mail-type ALL
+#SBATCH --partition=gpu --gpus=1 --cpus-per-task=1 --mem-per-cpu=4G -t 8:00:00 --mail-type ALL
 
 module purge
 module load miniconda
