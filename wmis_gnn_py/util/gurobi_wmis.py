@@ -6,10 +6,11 @@ from gurobipy import GRB
 def wmis_ilp(G: nx.Graph):
     try:
         m = gp.Model("Weighted Maximum Independent Set")
+        m.Params.LogToConsole = 0
 
         m.setAttr("ModelSense", -1)
 
-        nodes = list(range(1, G.order() + 1))
+        nodes = list(G.nodes)
         node_weights = nx.get_node_attributes(G, "weight")
 
         x = m.addVars(nodes, vtype=GRB.BINARY, obj=node_weights, name="vertices")
@@ -34,10 +35,11 @@ def wmis_ilp(G: nx.Graph):
 def wmis_lp(G: nx.Graph):
     try:
         m = gp.Model("Weighted Maximum Independent Set")
+        m.Params.LogToConsole = 0
 
         m.setAttr("ModelSense", -1)
 
-        nodes = list(range(1, G.order() + 1))
+        nodes = list(G.nodes)
         node_weights = nx.get_node_attributes(G, "weight")
 
         x = m.addVars(

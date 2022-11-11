@@ -11,7 +11,7 @@ def greedy_wmis(G: nx.Graph, limit=-1):
     solution.sort(reverse=True, key=operator.itemgetter(1))
 
     # ensure all vertices in the view are not solved yet
-    assert solution[0][1] < 1.0
+    # assert solution[0][1] < 1.0
 
     if limit < 0:
         limit = len(solution)
