@@ -1,0 +1,1 @@
+python3 wmis_gnn_py/gen_wmis_gnn_batch.py data/pace_unweighted --wmis_gnn=wmis_gnn_py/run_wmis_gnn.py --time_limit=1800 --output_dir=data/pace_unweighted/output --model_dir=models/wmvc_pace_unweighted/ --model_base=wmvc_pace_unweighted --batch_size=1 --hidden_dim=32
