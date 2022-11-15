@@ -75,12 +75,16 @@ def yield_solution_filenames(solution_dir):
 
 
 def solution_to_nx(G: nx.Graph, filename):
+    path = pathlib.Path(filename)
+    if not path.is_file():
+        return
+
     solution = {}
 
-    with open(filename, "r") as f:
+    with open(path.resolve(), "r") as f:
         for line_num, line in enumerate(f):
             v = line_num + 1
-            solution[v] = int(line)
+            solution[v] = int(float(line))
 
     assert len(solution) == G.order()
     nx.set_node_attributes(G, solution, "solution")
