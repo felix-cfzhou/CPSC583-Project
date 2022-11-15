@@ -2,6 +2,8 @@ gurobi.log
 
 .DS_STORE
 
+*.pt
+
 *.swp
 *.swo
 

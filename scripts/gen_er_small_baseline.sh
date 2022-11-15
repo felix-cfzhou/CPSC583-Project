@@ -1,0 +1,1 @@
+python3 wmis_gnn_py/gen_wmis_gnn_batch.py data/erdos_reyni_small --wmis_gnn=wmis_gnn_py/run_baseline.py --time_limit=1800 --output_dir=data/erdos_reyni_small/baseline --model_dir=models/baseline_er_small/ --model_base=baseline_er_small --batch_size=1 --hidden_dim=32
