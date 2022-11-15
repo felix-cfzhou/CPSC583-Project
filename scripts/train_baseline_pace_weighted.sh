@@ -10,4 +10,4 @@ module load Gurobi
 
 conda activate graph
 
-python /gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/wmis_gnn_py/train_baseline.py --data_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/data/pace_weighted --output_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/models/baseline_pace_weighted/ --output_name="baseline_pace_weighted.pt" --eval_size=0.2 --batch_size=256 --num_epochs=300 --class1_weight=0.5 --hidden_layers=32 --learning_rate=1e-2 --momentum=0.9 --max_dataset_len=10000 --max_node_num=1000
+python /gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/wmis_gnn_py/train_baseline.py --data_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/data/pace_weighted --output_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/models/baseline_pace_weighted/ --output_name="baseline_pace_weighted.pt" --eval_size=0.2 --batch_size=256 --num_epochs=300 --class1_weight=0.5 --hidden_dim=32 --learning_rate=1e-2 --momentum=0.9 --max_dataset_len=10000 --max_node_num=1000
