@@ -26,9 +26,11 @@ if __name__ == "__main__":
     G = metis_to_nx(args.graph.resolve())
 
     random_state = np.random.RandomState(args.random_state)
-    random_solution = random_state.rand(G.order())
+    rand = random_state.rand(G.order())
     nx.set_node_attributes(
-        G, {v: random_solution[idx] for idx, v in enumerate(G.nodes)}, name="solution"
+        G,
+        {v: G.nodes[v]["weight"] + rand[idx] for idx, v in enumerate(G.nodes)},
+        name="solution",
     )
 
     greedy_wmis(G)
