@@ -16,6 +16,7 @@ def make_parser():
     parser.add_argument("--heuristic_dir", type=existing_directory, required=True)
     parser.add_argument("--baseline_dir", type=existing_directory, required=True)
     parser.add_argument("--local_search_dir", type=existing_directory, required=True)
+    parser.add_argument("--greedy_dir", type=existing_directory, required=True)
     parser.add_argument("--sample", type=int, required=True)
     parser.add_argument("--output_dir", type=existing_directory, required=True)
     parser.add_argument("--output_name", type=str, required=True)
@@ -24,7 +25,13 @@ def make_parser():
 
 
 def compute_metrics(
-    graph_dir, opt_dir, heuristic_dir, baseline_dir, local_search_dir, size=0
+    graph_dir,
+    opt_dir,
+    heuristic_dir,
+    baseline_dir,
+    local_search_dir,
+    greedy_dir,
+    size=0,
 ):
     graph_paths = list(pathlib.Path(path) for path in yield_metis_filenames(graph_dir))
     rows = []
@@ -39,6 +46,7 @@ def compute_metrics(
         local_search_solution_path = (
             local_search_dir / graph_path.with_suffix(".ind").name
         )
+        greedy_solution_path = greedy_dir / graph_path.with_suffix(".ind").name
 
         G = metis_to_nx(graph_path.resolve())
 
@@ -70,6 +78,13 @@ def compute_metrics(
                 G.nodes[v]["weight"] for v in G.nodes if G.nodes[v]["solution"] == 1
             )
 
+        greedy_weight = None
+        if greedy_solution_path.is_file():
+            solution_to_nx(G, greedy_solution_path.resolve())
+            greedy_weight = sum(
+                G.nodes[v]["weight"] for v in G.nodes if G.nodes[v]["solution"] == 1
+            )
+
         rows.append(
             pd.Series(
                 {
@@ -78,6 +93,7 @@ def compute_metrics(
                     "heuristic_weight": heuristic_weight,
                     "baseline_weight": baseline_weight,
                     "local_search_weight": local_search_weight,
+                    "greedy_weight": greedy_weight,
                 }
             )
         )
@@ -95,6 +111,7 @@ if __name__ == "__main__":
         args.heuristic_dir,
         args.baseline_dir,
         args.local_search_dir,
+        args.greedy_dir,
         size=args.sample,
     )
     df = pd.DataFrame(rows)

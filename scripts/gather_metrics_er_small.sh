@@ -16,6 +16,7 @@ python3 /gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/wmis_gnn_py/gather_met
   --heuristic_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/data/erdos_reyni_small/output \
   --baseline_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/data/erdos_reyni_small/baseline \
   --local_search_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/data/erdos_reyni_small/kamis_local_search \
+  --greedy_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/data/erdos_reyni_small/greedy \
   --sample=0 \
   --output_dir=/gpfs/gibbs/project/karbasi/cz397/CPSC583-Project/metrics/ \
   --output_name=erdos_reyni_small_metrics.csv
