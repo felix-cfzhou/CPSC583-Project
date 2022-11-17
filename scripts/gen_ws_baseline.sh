@@ -1,0 +1,1 @@
+python3 wmis_gnn_py/gen_wmis_gnn_batch.py data/watts_strogatz --wmis_gnn=wmis_gnn_py/run_baseline.py --time_limit=1800 --output_dir=data/watts_strogatz/baseline --model_dir=models/baseline_ws/ --model_base=baseline_ws --batch_size=1 --hidden_dim=32
