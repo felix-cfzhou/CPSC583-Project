@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --output gather_metrics_er_small.out
-#SBATCH --job-name=gather_metrics_baseline_er_small
+#SBATCH --job-name=gather_metrics_small
 #SBATCH --cpus-per-task=1 --mem-per-cpu=2G -t 1:00:00 --mail-type ALL
 
 module purge
