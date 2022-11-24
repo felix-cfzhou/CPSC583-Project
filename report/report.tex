@@ -219,13 +219,138 @@ The main difference is the addition of a graph attention convolution,
 chebyshev convolution,
 and multiple aggregation heads in WMVC which BASELINE lacks.
 
-Our experiments show that GNNs are able to learn some inherent structure of large independent sets
-and were able to generalize well to unseen examples,
-even ones which contain significantly more nodes than the training examples.
-This is quantified in the quality of approximations our extremely simple heuristic is able to achieve,
-which is close 
+We also implemented a simple reduction step which involves solving a single linear program
+as well as a simple greedy postprocessing step to round the output probabilities on each vertex to an integral solution.
+This heuristic is quite modular and any of the three components
+(reduction, GNN, postprocessing)
+can be replaced with more sophisticated implementations.
+We discuss possible directions of improvement in each of the three components
+within \Cref{sec:conclusion}.
 
-\section{Dataset}
+Our experiments show that GNNs are able to learn some inherent structure of large independent sets
+and were able to generalize to unseen examples,
+even ones which contain significantly more nodes than the training examples.
+This is quantified in the quality of approximations our extremely simple heuristic was able to achieve.
+
+\section{Related Works}
+\subsection{Reductions}
+It is helpful to think of WMIS as a 0-1 integer program.
+\begin{align*}
+  &\max \sum_{v\in V} w(v) x(v) \\
+  x(u) + x(v) &\leq 1 &&\forall uv\in E \\
+  x &\in \set{0, 1}
+\end{align*}
+Although we cannot hope to solve 0-1 integer programs in polynomial time
+(unless P=NP),
+we can relax the integral constraints ($x\in \set{0, 1}^n$)
+to form a linear program ($x\in [0, 1]^n$).
+Solving this linear program yields a solution $\bar x\in [0, 1]^n$.
+It is known that there is an optimal solution to WMIS
+such that if $\bar x(v) = 1$,
+then the solution includes $v$
+and if $\bar x(v) = 0$,
+then the solution does not include $v$ \citet{lpreduction}.
+Thus we can shrink an instance of WMIS by first solving a linear program
+and enforcing that integral vertices are (not) part of the solution.
+This is an example of a reduction rule which reduces the sizes of instances
+such that any optimal solution for the reduced instance can be expanded to an optimal solution
+for the original solution.
+Practical solvers for WMIS extensively use reduction rules
+in hopes that we can significantly reduce instances
+before applying brute force or a heuristic search \cite{kamis}.
+
+We employ the simple LP reduction rule by calling upon the popular LP solver Gurobi \citet{gurobi}.
+Using this simple reduction rule allows ease of implementation in python
+as well as delegate the heavy lifting to a library.
+While reduction rules with better practical performance are known and implemented in C++,
+it would be difficult to integrate with existing machine learning pipeline.
+
+\subsection{Graph Neural Networks}
+Graph neural networks generalize the concept of convolutions
+within convolutional neural networks
+to arbitrary graph-structured data \citet{scarselli2008graph}.
+Neural network architectures for graphs have made non-trivial progress on combinatorial optimization problems \citet{cappart2021combinatorial}.
+For example, we can consult a graph convolutional network (GCN) as part of an iterative search,
+whether some vertex is part of some optimal solution \citet{comboptgcn}.
+The authors referred this as a \emph{reducing-peeling} strategy.
+
+Following this line of works,
+\citet{langedal_et_al} combined techniques from exact methods,
+iterative search,
+and GNNs.
+The authors first compute a greedy solution using reduction rules when possible.
+Then, a GNN is applied to select a vertex likely to be in or out of the solution,
+potentially opening up further reductions.
+Finally, a local search strategy is used to enhance the solution.
+They also provided a C++ implementation
+and conducted experiments on some SuiteSparse graphs \citet{suitesparse}.
+However, we were unable to obtain the exact dataset used.
+
+We focus our experimentation on the GNN aspect of the heuristc from \citet{langedal_et_al}
+and less on the reduction rules and postprocessing step.
+Moreover, our implementation fits well into the broader data science landscape around python
+and lends itself towards future research directions.
+
+\subsection{Unsupervised Techniques}
+Data preparation is an important component of any machine learning pipeline.
+One of the many bottlenecks in supervised learning is obtaining labelled data.
+This hurdle is even more apparent in our setting
+since it is NP-hard to produce the exact labels for an optimal solution.
+Moreover, even if we do manage to optimally solve a sufficient number of instances
+to produce a sizeable training set,
+there is no guarantee that these solutions are unique.
+\citet{karalias2022neural} take a different route
+and bypass the labelling by extending discrete functions onto a continuous domain
+and directly training a GNN to optimize these functions.
+This follows an extensive line of work for gradient progagation
+through discrete functions \citet{williams1992simple,bengio2013estimating,karalias2020erdos}.
+
+These unsupervised techniques provide an alternative to the training of the GNN
+and perhaps unlock training at larger scales than what we have been able to accomplish.
+
+\section{Our Approaches}
+Our approach can be summarize by the following:
+\begin{enumerate}[1)]
+  \item Compute reductions (optional).
+  \item Consult GNN as in reducing-peeling.
+  \item Go to 1) (optional).
+  \item Compute a final feasible solution.
+\end{enumerate}
+Our overall goal is two-fold.
+First, we would like to build on the framework of \citet{langedal_et_al}
+with a focus on the architecture of the GNN employed
+and less attention on the reductions and local search techniques.
+Secondly, we would like to provide a highly extensible framework in Python3
+which faciliates further experimentation.
+
+\subsection{Computing Reductions (Optional)}
+Before consulting our GNN,
+we can optionally apply some reduction rules.
+We will leverage the popular LP solver Gurobi \citet{gurobi}
+and implement the LP reduction by \citet{lpreduction}.
+
+\subsection{GNN Architecture}
+We will begin with the 3-layer GNN architecture from \citet{langedal_et_al}
+implemented in PyTorch Geometric \citet{pyg},
+a library built upon the popular PyTorch framework \citet{pytorch}.
+Next, we would like to experiment with more expressive architectures
+such as Identity-Aware GNNs by \citet{idgnn}.
+The output of our GNN should be a value between $[0, 1]$ for every node
+which we interpret as the likelihood of that node belonging to an optimal solution.
+
+\subsection{Iterating (Optional)}
+Given the output from our GNN,
+we can optionally attempt further reductions before computing a final solution.
+
+\subsection{Computing a Final Solution}
+If the current solution is not integral,
+there is a simple greedy algorithm to ``round'' the solution to an independent set.
+Namely, we sort the vertices in non-increasing fashion based on the value in the current solution.
+Then, we greedily add the highest unprocessed vertex to our independent set
+while marking all of its neighbors as not belonging to the set.
+
+\section{Experiments}
+\subsection{Datasets}
 We consider both real-world graphs and synthetic graphs.
 Since these graphs do not come with weights,
 we augment each instance with uniformly random integer weights within the interval $[1, N]$.
@@ -303,94 +428,7 @@ Interestingly, for $k=5,6$,
 the B\&R solver solved most cases within 6 hours.
 However, for $k=7$, it fails to solve almost all the generated cases within 6 hours.
 
-\section{Description of Related Works}
-\subsection{Reductions}
-It is helpful to think of WMIS as a 0-1 integer program.
-\begin{align*}
-  &\max \sum_{v\in V} w(v) x(v) \\
-  x(u) + x(v) &\leq 1 &&\forall uv\in E \\
-  x &\in \set{0, 1}
-\end{align*}
-Although we cannot hope to solve 0-1 integer programs in polynomial time
-(unless P=NP),
-we can relax the integral constraints ($x\in \set{0, 1}^n$)
-to form a linear program ($x\in [0, 1]^n$).
-Solving this linear program yields a solution $\bar x\in [0, 1]^n$.
-It is known that there is an optimal solution to WMIS
-such that if $\bar x(v) = 1$,
-then the solution includes $v$
-and if $\bar x(v) = 0$,
-then the solution does not include $v$ \citet{lpreduction}.
-Thus we can shrink an instance of WMIS by first solving a linear program
-and enforcing that integral vertices are (not) part of the solution.
-This is an example of a reduction rule which reduces the sizes of instances
-such that any optimal solution for the reduced instance can be expanded to an optimal solution
-for the original solution.
-Practical solvers for WMIS extensively use reduction rules
-in hopes that we can significantly reduce instances
-before applying brute force or a heuristic search \cite{kamis}.
-
-\subsection{Graph Neural Networks}
-Graph neural networks generalize the concept of convolutions to arbitrary graph-structured data \citet{scarselli2008graph}.
-Neural network architectures for graphs have made non-trivial progress on combinatorial optimization problems \citet{cappart2021combinatorial}.
-For example, we can consult a graph convolutional network (GCN) as part of an iterative search,
-whether some vertex is part of some optimal solution \citet{comboptgcn}.
-The authors referred this as a \emph{reducing-peeling} strategy.
-
-Following this line of works,
-\citet{langedal_et_al} combined techniques from exact methods,
-iterative search,
-and GNNs.
-The authors first compute a greedy solution using reduction rules when possible.
-Then, a simple 3-layer GNN is applied to select a vertex likely to be in or out of the solution,
-potentially opening up further reductions.
-Finally, a local search strategy is used to enhance the solution.
-They also provided a C++ implementation
-and conducted experiments on some SuiteSparse graphs \citet{suitesparse}.
-However, we were unable to obtain the exact dataset used.
-
-\section{Our Approaches}
-Our approach can be summarize by the following:
-\begin{enumerate}[1)]
-  \item Compute reductions (optional).
-  \item Consult GNN as in reducing-peeling.
-  \item Go to 1) (optional).
-  \item Compute a final feasible solution.
-\end{enumerate}
-Our overall goal is two-fold.
-First, we would like to build on the framework of \citet{langedal_et_al}
-with a focus on the architecture of the GNN employed
-and less attention on the reductions and local search techniques.
-Secondly, we would like to provide a highly extensible framework in Python3
-which faciliates further experimentation.
-
-\subsection{Computing Reductions (Optional)}
-Before consulting our GNN,
-we can optionally apply some reduction rules.
-We will leverage the popular LP solver Gurobi \citet{gurobi}
-and implement the LP reduction by \citet{lpreduction}.
-
-\subsection{GNN Architecture}
-We will begin with the 3-layer GNN architecture from \citet{langedal_et_al}
-implemented in PyTorch Geometric \citet{pyg},
-a library built upon the popular PyTorch framework \citet{pytorch}.
-Next, we would like to experiment with more expressive architectures
-such as Identity-Aware GNNs by \citet{idgnn}.
-The output of our GNN should be a value between $[0, 1]$ for every node
-which we interpret as the likelihood of that node belonging to an optimal solution.
-
-\subsection{Iterating (Optional)}
-Given the output from our GNN,
-we can optionally attempt further reductions before computing a final solution.
-
-\subsection{Computing a Final Solution}
-If the current solution is not integral,
-there is a simple greedy algorithm to ``round'' the solution to an independent set.
-Namely, we sort the vertices in non-increasing fashion based on the value in the current solution.
-Then, we greedily add the highest unprocessed vertex to our independent set
-while marking all of its neighbors as not belonging to the set.
-
-\section{Evaluation Metrics}
+\subsection{Evaluation Metrics}
 We would like to evaluate the performance of our framework on the PACE 2019 dataset \citet{pace2019},
 Erd\H os-R\'eyni graphs,
 and Watts-Strogatz graphs (if time permits) in two ways.
@@ -412,7 +450,7 @@ against the parameters of random graphs.
 For instance, the $k$ parameter of the Watts-Strogatz graphs $G(n, k, p)$
 and the $p$ parameter of the Erd\H os-R\'eyni graphs $G(n, p)$.
 
-\section{Timeline}
+\subsection{Timeline}
 We plan on spending one week on each of the following tasks:
 \begin{enumerate}[(i)]
   \item Implement LP reduction and final greedy algorithm.
@@ -423,6 +461,9 @@ We plan on spending one week on each of the following tasks:
   \item Train and evaluate on PACE 2019 and Erd\H os-R\'eyni graphs.
   \item Train and evaluate on Watts-Strogatz graphs (if time permits).
 \end{enumerate}
+
+\section{Conclusion \& Future Work}
+\label{sec:conclusion}
 
 \section{References}
 \bibliographystyle{plainnat}
