@@ -353,6 +353,8 @@ It consists of three message passing layers
 interwoven with 3-layer MLPs
 as well as a random walk positional encoding \citet{dwivedi2021graph}.
 
+See \textcolor{red}{TODO} for a visualization.
+
 Next, we would like to experiment with more graph learning techniques
 to develop the WMVC architecture.
 Again,
@@ -368,6 +370,8 @@ which is a graph attention operator which fixes the static attention problem fro
 the graph attentional operator \citet{velivckovic2017graph}.
 Finally,
 WMVC employs multiple aggregation heads \citet{corso2020principal, tailor2021we} in its message passing layers which BASELINE lacks.
+
+See \textcolor{red}{TODO} for a visualization.
 
 \subsection{Iterating (Optional)}
 Given the output from our GNN,
@@ -501,6 +505,14 @@ we will reserve 20\% of the labeled dataset for evaluation
 and the rest for training.
 
 \subsection{Training Details}
+\subsubsection{Features}
+We employ node features in $\R^7$.
+The first three features are the node weight,
+the node degree,
+and the sum of weights of neighbors.
+The last four features are the random walk positional encodings
+with total walk length 4.
+
 \subsubsection{BASELINE}
 For training the baseline model,
 we attempted to replicate the hyperparameters of \citet{langedal_et_al}
@@ -525,6 +537,7 @@ for the negative and positive examples,
 respectively.
 
 \subsubsection{Results \& Analysis}
+\textcolor{red}{TODO}
 
 \section{Conclusion \& Future Work}
 \label{sec:conclusion}
