@@ -215,9 +215,9 @@ there can be no polynomial time approximation scheme (PTAS) \citet{berman1999app
 We trained two simple GNN models,
 BASELINE and WMVC which both consist of three message passing layers
 interwoven with 3-layer MLPs.
-The main difference is the addition of a graph attention convolution,
-chebyshev convolution,
-and multiple aggregation heads in WMVC which BASELINE lacks.
+The main difference is the addition of a graph attention convolution \citet{brody2021attentive},
+a spectral convolution \citet{defferrard2016conv},
+and multiple aggregation heads \citet{corso2020principal, tailor2021we} in WMVC which BASELINE lacks.
 
 We also implemented a simple reduction step which involves solving a single linear program
 as well as a simple greedy postprocessing step to round the output probabilities on each vertex to an integral solution.
@@ -252,7 +252,8 @@ and if $\bar x(v) = 0$,
 then the solution does not include $v$ \citet{lpreduction}.
 Thus we can shrink an instance of WMIS by first solving a linear program
 and enforcing that integral vertices are (not) part of the solution.
-This is an example of a reduction rule which reduces the sizes of instances
+This is an example of a reduction rule
+which reduces the sizes of instances
 such that any optimal solution for the reduced instance can be expanded to an optimal solution
 for the original solution.
 Practical solvers for WMIS extensively use reduction rules
@@ -263,7 +264,7 @@ We employ the simple LP reduction rule by calling upon the popular LP solver Gur
 Using this simple reduction rule allows ease of implementation in python
 as well as delegate the heavy lifting to a library.
 While reduction rules with better practical performance are known and implemented in C++,
-it would be difficult to integrate with existing machine learning pipeline.
+it would be difficult to integrate with existing machine learning pipelines.
 
 \subsection{Graph Neural Networks}
 Graph neural networks generalize the concept of convolutions
@@ -308,7 +309,7 @@ through discrete functions \citet{williams1992simple,bengio2013estimating,karali
 These unsupervised techniques provide an alternative to the training of the GNN
 and perhaps unlock training at larger scales than what we have been able to accomplish.
 
-\section{Our Approaches}
+\section{Our Approach}
 Our approach can be summarize by the following:
 \begin{enumerate}[1)]
   \item Compute reductions (optional).
@@ -329,25 +330,65 @@ we can optionally apply some reduction rules.
 We will leverage the popular LP solver Gurobi \citet{gurobi}
 and implement the LP reduction by \citet{lpreduction}.
 
+Other reduction rules which we have not implemented include
+neighborhood removal,
+where a vertex is swapped into a solution if its neighbors have sufficient weight,
+weighted twin,
+where two vertices with the same independent neighborhood can at times be directly included into the solution,
+and weighted domination,
+where if vertices $u, v$ satisfy $N(u)\cup \set{u} \supseteq N(v)\cup \set{v}$,
+but $w(u) < w(v)$,
+then $u$ can be removed \citet{kamis}.
+These reductions can all be implemented and swapped or added to the reduction step of our algorithm.
+However,
+a sufficiently fast implementation would be difficult in python.
+Thus we leave the experimentation with more complex reduction rules for future work.
+
 \subsection{GNN Architecture}
-We will begin with the 3-layer GNN architecture from \citet{langedal_et_al}
+We first implement the 3-layer GNN architecture from \citet{langedal_et_al}
 implemented in PyTorch Geometric \citet{pyg},
 a library built upon the popular PyTorch framework \citet{pytorch}.
-Next, we would like to experiment with more expressive architectures
-such as Identity-Aware GNNs by \citet{idgnn}.
-The output of our GNN should be a value between $[0, 1]$ for every node
-which we interpret as the likelihood of that node belonging to an optimal solution.
+We refer to this model as BASELINE.
+It consists of three message passing layers
+interwoven with 3-layer MLPs
+as well as a random walk positional encoding \citet{dwivedi2021graph}.
+
+Next, we would like to experiment with more graph learning techniques
+to develop the WMVC architecture.
+Again,
+it consists of three message passing layers
+interwoven with 3-layer MLPs
+as well as a random walk positional encoding.
+In addition,
+we include a Chebyshev convolution \citet{defferrard2016conv} before the message pasing layers,
+which is a spectral graph convolution.
+Moreover,
+we also employ the GATv2 operator \citet{brody2021attentive} before the message passing layers,
+which is a graph attention operator which fixes the static attention problem from its predecessor,
+the graph attentional operator \citet{velivckovic2017graph}.
+Finally,
+WMVC employs multiple aggregation heads \citet{corso2020principal, tailor2021we} in its message passing layers which BASELINE lacks.
 
 \subsection{Iterating (Optional)}
 Given the output from our GNN,
+we can choose to include or exclude some vertices from the solution.
+Then,
 we can optionally attempt further reductions before computing a final solution.
 
 \subsection{Computing a Final Solution}
 If the current solution is not integral,
 there is a simple greedy algorithm to ``round'' the solution to an independent set.
-Namely, we sort the vertices in non-increasing fashion based on the value in the current solution.
+Namely, we sort the vertices in non-increasing fashion based on the outputted probabilities of our GNN.
 Then, we greedily add the highest unprocessed vertex to our independent set
 while marking all of its neighbors as not belonging to the set.
+
+While this is the simplest method,
+the greedy rounding algorithm is certainly not the only choice.
+We can employ some sort of local search algorithm \citet{dahlum2016accelerating, chang2017computing} in place of the greedy algorithm we implemented.
+Once again,
+our implementation is geared towards simplicity
+and a sufficiently fast local search implementation
+should most likely be done using a compiled language.
 
 \section{Experiments}
 \subsection{Datasets}
@@ -370,6 +411,13 @@ For each of the 200 PACE graphs,
 we sampled 100 instances of uniform random vertex weights.
 Out of the 20000 total instances,  
 the state-of-the-art branch and reduce (B\&R) solver by \citet{kamis} solved 18197 cases within 6 hours.
+
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/pace_unweighted}
+     \caption{Basic graph statistics as histograms for pace graphs.}
+     \label{fig:pace_unweighted}
+\end{figure}
 
 See \Cref{fig:pace_unweighted} for some elementary statistics about the pace dataset.
 It is interesting to note that this dataset is relatively sparse,
@@ -407,6 +455,13 @@ for which the B\&R solver solved all cases within 6 hours.
 It may be interesting to plot the fraction of cases solvable by B\&R
 against the parameters $n, p$.
 
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/erdos_reyni_small}
+     \caption{Basic graph statistics as histograms for $G(200, 0.1)$ graphs.}
+     \label{fig:erdos_reyni_small}
+\end{figure}
+
 See \Cref{fig:erdos_reyni_small} for some preliminary statistics of $G(200, 0.1)$,
 computed from a sample of 200 from the 1000 generated instances.
 As expected,
@@ -427,40 +482,49 @@ we generated 10000 instances of $G(1000, 5, 0.9)$.
 Interestingly, for $k=5,6$,
 the B\&R solver solved most cases within 6 hours.
 However, for $k=7$, it fails to solve almost all the generated cases within 6 hours.
+This may be due to the nature of the reduction rules,
+some of which only work for very low degree vertices.
 
 \subsection{Evaluation Metrics}
 We would like to evaluate the performance of our framework on the PACE 2019 dataset \citet{pace2019},
 Erd\H os-R\'eyni graphs,
-and Watts-Strogatz graphs (if time permits) in two ways.
+and Watts-Strogatz graphs in two ways.
 we would first like to look at the approximation ratio of our algorithm compared to the exact solutions
 computed using B\&R \citet{kamis}.
 Then, we would like to compare the approximation ratio of our algorithms compared to a heuristic local search
 restricted to 30 minutes.
-The second metric is necessary since the exact solver was unable to find the optimal result for about 10\% of PACE graphs.
+The second metric is necessary since the exact solver was unable to find the optimal result for about 10\% of PACE graphs
+and more for the other datasets.
 
-On the PACE 2019 dataset,
-we will imitate the conditions of the contest and train our models on the odd-indexed graphs.
-For the random graphs,
+On all datasets,
 we will reserve 20\% of the labeled dataset for evaluation
 and the rest for training.
 
-If time permits,
-it would be interesting to plot the approximation ratio (compared to the exact solution)
-against the parameters of random graphs.
-For instance, the $k$ parameter of the Watts-Strogatz graphs $G(n, k, p)$
-and the $p$ parameter of the Erd\H os-R\'eyni graphs $G(n, p)$.
+\subsection{Training Details}
+\subsubsection{BASELINE}
+For training the baseline model,
+we attempted to replicate the hyperparameters of \citet{langedal_et_al}
+as much as possible.
 
-\subsection{Timeline}
-We plan on spending one week on each of the following tasks:
-\begin{enumerate}[(i)]
-  \item Implement LP reduction and final greedy algorithm.
-  \item Implement basic 3-layer GNN and identity-aware GNN.
-  \item Train and evaluate on PACE 2019 graphs.
-  \item Train and evaluate on Erd\H os-R\'eyni graphs.
-  \item Iterate on GNN architecture.
-  \item Train and evaluate on PACE 2019 and Erd\H os-R\'eyni graphs.
-  \item Train and evaluate on Watts-Strogatz graphs (if time permits).
-\end{enumerate}
+For all datasets,
+we used the SGD optimizer with a learning rate of 0.02 and momentum with parameter 0.9.
+We trained for 300 epochs
+and used a batch size of 256 graphs per batch.
+We used negative loglikelihood loss
+with class weights of 0.5 and 0.5 for the negative and positive examples,
+respectively.
+Finally,
+we restricted ourselves to training on the graphs with at most 1000 nodes,
+which amounts to about \textcolor{red}{TODO} out of the total graphs.
+
+\subsubsection{WMVC}
+We had the exact same hyperparameters
+when training the WMVC model
+except for the class weights which are now 0.2 and 0.8
+for the negative and positive examples,
+respectively.
+
+\subsubsection{Results \& Analysis}
 
 \section{Conclusion \& Future Work}
 \label{sec:conclusion}
@@ -470,19 +534,6 @@ We plan on spending one week on each of the following tasks:
 \bibliography{report.bib}
 
 \section{Appendix}
-\begin{figure}[H]
-     \centering
-     \includegraphics[width=\textwidth]{figures/pace_unweighted}
-     \caption{Basic graph statistics as histograms for pace graphs.}
-     \label{fig:pace_unweighted}
-\end{figure}
-
-\begin{figure}[H]
-     \centering
-     \includegraphics[width=\textwidth]{figures/erdos_reyni_small}
-     \caption{Basic graph statistics as histograms for $G(200, 0.1)$ graphs.}
-     \label{fig:erdos_reyni_small}
-\end{figure}
 
 
 \end{document}
