@@ -345,6 +345,7 @@ a sufficiently fast implementation would be difficult in python.
 Thus we leave the experimentation with more complex reduction rules for future work.
 
 \subsection{GNN Architecture}
+\subsubsection{BASELINE}
 We first implement the 3-layer GNN architecture from \citet{langedal_et_al}
 implemented in PyTorch Geometric \citet{pyg},
 a library built upon the popular PyTorch framework \citet{pytorch}.
@@ -353,8 +354,16 @@ It consists of three message passing layers
 interwoven with 3-layer MLPs
 as well as a random walk positional encoding \citet{dwivedi2021graph}.
 
-See \textcolor{red}{TODO} for a visualization.
+\begin{figure}
+     \centering
+     \includegraphics[height=0.7\paperheight]{figures/baseline_arch}
+     \caption{Architecture for BASELINE.}
+     \label{fig:baseline_arch}
+\end{figure}
 
+See \Cref{fig:baseline_arch} for a visualization.
+
+\subsubsection{WMVC}
 Next, we would like to experiment with more graph learning techniques
 to develop the WMVC architecture.
 Again,
@@ -371,7 +380,14 @@ the graph attentional operator \citet{velivckovic2017graph}.
 Finally,
 WMVC employs multiple aggregation heads \citet{corso2020principal, tailor2021we} in its message passing layers which BASELINE lacks.
 
-See \textcolor{red}{TODO} for a visualization.
+\begin{figure}
+     \centering
+     \includegraphics[height=0.7\paperheight]{figures/wmvc_arch}
+     \caption{Architecture for WMVC.}
+     \label{fig:wmvc_arch}
+\end{figure}
+
+See \Cref{fig:wmvc_arch} for a visualization.
 
 \subsection{Iterating (Optional)}
 Given the output from our GNN,
@@ -529,6 +545,13 @@ Finally,
 we restricted ourselves to training on the graphs with at most 1000 nodes,
 which amounts to about \textcolor{red}{TODO} out of the total graphs.
 
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/baseline_test}
+     \caption{BASELINE Train and Test Acuracy.}
+     \label{fig:baseline_test}
+\end{figure}
+
 \subsubsection{WMVC}
 We had the exact same hyperparameters
 when training the WMVC model
@@ -536,7 +559,27 @@ except for the class weights which are now 0.2 and 0.8
 for the negative and positive examples,
 respectively.
 
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/wmvc_test}
+     \caption{WMVC Train and Test Accuracy.}
+     \label{fig:wmvc_test}
+\end{figure}
+
 \subsubsection{Results \& Analysis}
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/approx_ratio}
+     \caption{Approximation Ratio.}
+     \label{fig:approx_ratio}
+\end{figure}
+
+\begin{figure}
+     \centering
+     \includegraphics[width=\textwidth]{figures/local_search}
+     \caption{Performance Relative to Local Search.}
+     \label{fig:local_search}
+\end{figure}
 \textcolor{red}{TODO}
 
 \section{Conclusion \& Future Work}
