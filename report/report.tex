@@ -34,6 +34,7 @@
 \usepackage{xcolor}         % colors
 
 % Felix's packages
+\usepackage{todonotes}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[shortlabels]{enumitem}
@@ -356,7 +357,8 @@ as well as a random walk positional encoding \citet{dwivedi2021graph}.
 
 \begin{figure}
      \centering
-     \includegraphics[height=0.7\paperheight]{figures/baseline_arch}
+     % \includegraphics[height=0.7\paperheight]{figures/baseline_arch}
+     \missingfigure[figwidth=\textwidth]{baseline\_arch}
      \caption{Architecture for BASELINE.}
      \label{fig:baseline_arch}
 \end{figure}
@@ -382,7 +384,8 @@ WMVC employs multiple aggregation heads \citet{corso2020principal, tailor2021we}
 
 \begin{figure}
      \centering
-     \includegraphics[height=0.7\paperheight]{figures/wmvc_arch}
+     % \includegraphics[height=0.7\paperheight]{figures/wmvc_arch}
+     \missingfigure[figwidth=\textwidth]{wmvc\_arch}
      \caption{Architecture for WMVC.}
      \label{fig:wmvc_arch}
 \end{figure}
@@ -521,6 +524,29 @@ we will reserve 20\% of the labeled dataset for evaluation
 and the rest for training.
 
 \subsection{Training Details}
+For all datasets,
+we used the SGD optimizer with a learning rate of 0.02 and momentum with parameter 0.9.
+We trained for 300 epochs
+and used a batch size of 256 graphs per batch.
+We used negative loglikelihood loss
+with class weights of 0.5 and 0.5 for the negative and positive examples,
+respectively.
+Finally,
+we restricted ourselves to training on the graphs with at most 1000 nodes.
+This amounts to fewer graphs per dataset,
+especially for the PACE dataset.
+However,
+we will see that this still leads to decent approximatio ratios.
+
+The evaluation metrics we employ for test set are accuracy,
+accuracy 1,
+and accuracy 10.
+While accuracy is self-explanatory,
+accuracy $k$ for some $k\in \N$ refers to the accuracy of the predictions for the $k$ highest ranked nodes.
+That is,
+the nodes for which the model is most confident belongs to a weighted maximum independent set.
+This is more useful to us than raw accuracy
+since our heuristic really only relies on the the most confident prediction(s).
 \subsubsection{Features}
 We employ node features in $\R^7$.
 The first three features are the node weight,
@@ -533,24 +559,36 @@ with total walk length 4.
 For training the baseline model,
 we attempted to replicate the hyperparameters of \citet{langedal_et_al}
 as much as possible.
-
-For all datasets,
-we used the SGD optimizer with a learning rate of 0.02 and momentum with parameter 0.9.
-We trained for 300 epochs
-and used a batch size of 256 graphs per batch.
-We used negative loglikelihood loss
-with class weights of 0.5 and 0.5 for the negative and positive examples,
-respectively.
-Finally,
-we restricted ourselves to training on the graphs with at most 1000 nodes,
-which amounts to about \textcolor{red}{TODO} out of the total graphs.
+See \Cref{fig:baseline_test} for the training and test accuracy over the first 150 epochs.
 
 \begin{figure}
      \centering
-     \includegraphics[width=\textwidth]{figures/baseline_test}
+     % \includegraphics[width=\textwidth]{figures/baseline_test}
+     \missingfigure[figwidth=\textwidth]{baseline\_test}
      \caption{BASELINE Train and Test Acuracy.}
      \label{fig:baseline_test}
 \end{figure}
+
+There are a few interesting observations we note here.
+For one,
+the accuracy 1 and accuracy 10 on the small Erd\H os-R\'eyni graphs
+is lower than that of the mid-sized Erd\H os-R\'eyni graphs.
+This may seem counterintuitive at first
+but is reasonable since a smaller number of nodes means smaller number of nodes in a weighted maximum independent set.
+
+We also note that the training and test accuracies are extremely similar
+(but not the same when compared numerically).
+This seems to suggest that our models are underfitting
+and we can afford to introduce more expressiveness.
+
+Another point of interest is the accuracy and accuracy $k$ on the Watts-Strogatz graphs.
+This could be due to how every node has a very small number of neighbors
+and hence there is less variance in neighborhood structure.
+
+Finally,
+we remark that even though accuracy plateaus rather quickly,
+the accuracy $k$ metrics tend to increase as training progresses,
+especially on the small Erd\H os-R\'eyni graphs.
 
 \subsubsection{WMVC}
 We had the exact same hyperparameters
@@ -558,38 +596,91 @@ when training the WMVC model
 except for the class weights which are now 0.2 and 0.8
 for the negative and positive examples,
 respectively.
+See \Cref{fig:wmvc_test} for the training and test accuracy over the first 150 epochs.
 
 \begin{figure}
      \centering
-     \includegraphics[width=\textwidth]{figures/wmvc_test}
+     % \includegraphics[width=\textwidth]{figures/wmvc_test}
+     \missingfigure[figwidth=\textwidth]{wmvc\_test}
      \caption{WMVC Train and Test Accuracy.}
      \label{fig:wmvc_test}
 \end{figure}
 
-\subsubsection{Results \& Analysis}
+We observe very similar patterns in training compared to the BASELINE model.
+The only exception could be the greater fluctuation in the accuracy $k$ metric in the small Erd\H os-R\'eyni graphs.
+A possible explanation could be that the learning rate should be decreased as training progresses.
+
+\subsection{Results \& Analysis}
+We compare the quality of weighted independent sets with two other algorithms.
+One is the simple greedy algorithm which greedily chooses the unprocessed vertex with heaviest weight
+to add to the solution.
+The other algorithm we compare our models to is the sophisticated local search algorithm by \citet{kamis}.
+It employs many complicated reduction rules
+and performs well on many huge graphs.
+We run each algorithm for a maximum of 30 minutes per graph,
+which is significantly less than the 7 hours we allowed for the exact B\&R solver.
+See \Cref{fig:approx_ratio} for the boxplots of approximation ratios on each dataset.
+Note that we filtered by the graphs for which we were able to compute exact solutions.
+
+\subsubsection{Approximation Ratio}
 \begin{figure}
      \centering
-     \includegraphics[width=\textwidth]{figures/approx_ratio}
+     %\includegraphics[width=\textwidth]{figures/approx_ratio}
+     \missingfigure[figwidth=\textwidth]{approx\_ratio}
      \caption{Approximation Ratio.}
      \label{fig:approx_ratio}
 \end{figure}
 
+The local search algorithm is very good.
+It almost always finds a solution that is close to optimal,
+save some small number of outliers.
+We note that there could be some bias in data
+since the exact B\&R solver shares some of the reduction rules with the local search algorithm.
+Thus if the B\&R solver found an optimal solution,
+it is likely that the local search algorithm can find a very good one at least.
+
+Interestingly,
+the greedy algorithm on the small Erd\H os-R\'eyni graphs actually outperforms both BASELINE and WMVC.
+This could be due to the smaller number of total nodes,
+which increases the difficulty of finding a node belonging to a weighted maximum independent set.
+A possible improvement to our heuristic is to resort to the greedy algorithm once the number of unprocessed nodes falls below a threshold.
+
+For the Watts-Strogatz graphs,
+our models perform relatively better than the greedy heuristic.
+The reason for which could be the same as the accuracy $k$:
+every node has a very small number of neighbors
+and hence there is less variance in neighborhood structure.
+
+\subsubsection{Performance Ratio to Local Search}
+Since the B\&R solver was not able to find an exact solution for every graph,
+we compare the performance of our two models and the greedy algorithm
+with the performance of the local search heuristic.
+See \Cref{fig:local_search} for the ratios.
+
 \begin{figure}
      \centering
-     \includegraphics[width=\textwidth]{figures/local_search}
+     % \includegraphics[width=\textwidth]{figures/local_search}
+     \missingfigure[figwidth=\textwidth]{local\_search}
      \caption{Performance Relative to Local Search.}
      \label{fig:local_search}
 \end{figure}
-\textcolor{red}{TODO}
 
-\section{Conclusion \& Future Work}
-\label{sec:conclusion}
+\section{Conclusion \& Future Work}\label{sec:conclusion}
+We explored model improvements to the neural heuristic to solving WMIS by \citet{langedal_et_al}
+as well as provided a simple,
+extensible implementation of the heuristic.
+We experimented on two random graph datasets
+as well as a real life dataset.
+In the future,
+we hope to include more sophisticated preprocessing and postprocessing steps,
+as well as improve the GNN architecture to yield improved heuristics.
+One promising direction for developing better GNN architectures
+is to bypass the need for node labels
+and directly train our models on the (possibly adjusted) objective function of interest \citet{karalias2022neural}.
 
 \section{References}
 \bibliographystyle{plainnat}
 \bibliography{report.bib}
-
-\section{Appendix}
 
 
 \end{document}
