@@ -207,7 +207,7 @@ Note that $I$ is a WMIS in $G$
 if and only if $V\setminus I$ is a weighted minimum vertex cover (WMVC) in $G$.
 The unweighted decision version of the minimum vertex cover problem (MVC)
 was one of Karp's original 21 NP-complete problems.
-It follows that both WMVC and WMIS are both NP-hard.
+It follows that WMVC and WMIS are both NP-hard.
 In general graphs,
 it is known that the independent set problem (MIS) cannot be approximated within a factor of $n^{1-\epsilon}$ for any $\epsilon > 0$ where $n$ is the number of vertices \citet{zuckerman2006linear}.
 In fact, even in 3-regular 3-edge-colorable graphs,
@@ -555,7 +555,7 @@ The last four features are the random walk positional encodings
 with total walk length 4.
 
 \subsubsection{BASELINE}
-For training the baseline model,
+For training the BASELINE model,
 we attempted to replicate the hyperparameters of \citet{langedal_et_al}
 as much as possible.
 See \Cref{fig:baseline_test} for the training and test accuracy over the first 150 epochs.
@@ -651,6 +651,7 @@ and hence there is less variance in neighborhood structure.
 Since the B\&R solver was not able to find an exact solution for every graph,
 we compare the performance of our two models and the greedy algorithm
 with the performance of the local search heuristic.
+These statistics are more or less similar to the approximation ratio statistics.
 See \Cref{fig:local_search} for the ratios.
 
 \begin{figure}
