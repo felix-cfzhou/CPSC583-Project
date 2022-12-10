@@ -8,6 +8,9 @@ See the following for generating Erdos-Reyni and Watts-Strogatz graphs
 scripts/gen_erdos_reyni_small.sh
 scripts/gen_watts_strogatz.sh
 ```
+If we wish to work with the [PACE 2019 Vertex Cover Dataset](https://pacechallenge.org/2019/vc/vc_exact/),
+it must be downloaded, uncompressed, and converted to the METIS format.
+There is a utility function for doing so.
 
 See the following for (non-exhaustive) examples for model training.
 Weights are saved to an indicated directory.
